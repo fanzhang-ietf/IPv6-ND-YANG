@@ -11,7 +11,7 @@
 <rfc
   xmlns:xi="http://www.w3.org/2001/XInclude"
   category="std"
-  docName="draft-ietf-6man-ipv6-neighbor-discovery-yang-07"
+  docName="draft-ietf-6man-ipv6-neighbor-discovery-yang-08"
   ipr="trust200902"
   obsoletes=""
   updates=""
@@ -33,7 +33,7 @@
         <email>zhangf52@chinatelecom.cn</email>
       </address>
     </author>
-    
+
     <author initials="Y" surname="Zhu" fullname="Yongqing Zhu">
       <organization>China Telecom</organization>
       <address>
@@ -85,8 +85,9 @@
 
   <middle>
     <section anchor="intro" title="Introduction">
-      <t>This document defines a YANG data model "ietf-ipv6-nd" to configure and manage IPv6
-        Neighbor Discovery (ND) and related functions, including IPv6 address resolution <xref
+      <t>This document defines a YANG <xref target="RFC7950" /> data model "ietf-ipv6-nd" to
+        configure and manage IPv6 Neighbor Discovery (ND) and related functions, including IPv6
+        address resolution <xref
           target="RFC4861" />, redirect function <xref target="RFC4861" />, proxy Neighbor
         Advertisement <xref target="RFC4861" />, Neighbor Unreachability Detection (NUD) <xref
           target="RFC4861" />, Duplicate Address Detection (DAD) <xref target="RFC4862" />, and
@@ -96,21 +97,22 @@
           target="RFC8344" />, and there is already a draft <xref
           target="I-D.ietf-intarea-arp-yang-model" /> extending the basic ARP YANG functionality to
         cover optional ARP features and related statistics, which applies only to IPv4. Thus, an
-        extension for IPv6 is required to maintain the Neighbor Cache entries. </t>
+        extension for IPv6 is required to maintain the IPv6 Neighbor Cache entries. </t>
 
       <t><xref target="RFC4861" /> specifies the Neighbor Discovery protocol for IPv6, and <xref
           target="RFC4862" /> specifies related functions. This document covers IPv6 address
         resolution <xref target="RFC4861" />, redirect function <xref target="RFC4861" />, proxy
         Neighbor Advertisement <xref target="RFC4861" />, NUD <xref target="RFC4861" />, DAD <xref
           target="RFC4862" />, and Enhanced DAD <xref
-          target="RFC7527" />. Other function, such as Router and Prefix Discovery <xref
+          target="RFC7527" />. Other functions, such as Router and Prefix Discovery <xref
           target="RFC4861" /> are covered by submodule "ietf-ipv6-router-advertisements" in <xref
           target="RFC8349" />, and static neighbor cache entries and Stateless Address
         Autoconfiguration <xref target="RFC4862" /> are covered by module "ietf-ip" in <xref
           target="RFC8344" />. </t>
 
-      <t>The model is based on YANG 1.1 as defined in <xref target="RFC7950" /> and conforms to
-        Network Management Datastore Architecture (NMDA) as defined in <xref target="RFC8342" />.</t>
+      <t> Neighbor Discovery Optimization for 6LoWPANs <xref target="RFC6775" /> and other related
+        extensions, such as those specified in <xref target="RFC8505" />, <xref target="RFC8928" />,
+        and <xref target="RFC9010" />, are out of the scope of this document. </t>
 
       <section title="Terminology">
         <t>The following terms are defined in <xref target="RFC8342" />: </t>
@@ -176,18 +178,18 @@
       <section title="IPv6 Address Resolution and Redirect Function">
         <t>The data model augments the "/if:interfaces/if:interface/ip:ipv6" path defined in the
           "ietf-ip" module <xref target="RFC8344" /> for IPv6 ND protocol <xref target="RFC4861" />. </t>
-        <t>The "ns-interval" leaf defines the interval of retransmitting Neighbor Solicitation
+        <t>The "retrans-timer" leaf defines the interval of retransmitting Neighbor Solicitation
           messages when a node tries to learn the link-layer address of another node.</t>
         <t>The "redirect" leaf enables the sending of Redirect messages.</t>
-        <t>The "statistics" container defines a collection of interface-related statistics on
-          IPv6 ND messages.</t>
+        <t>The "statistics" container defines a collection of per-interface operational statistics
+          for each type of IPv6 ND messages.</t>
       </section>
 
       <section title="Neighbor Unreachability Detection">
         <t>The "reachable-time" leaf defines the time to confirm a neighbor's reachability for NUD.
           A neighbor's state changes from REACHABLE to STALE when there is no other reachability
           confirmation from the neighbor within the "reachable-time".</t>
-        <t>The "ns-interval" leaf also indicates the interval for retransmitting Neighbor
+        <t>The "retrans-timer" leaf also indicates the interval for retransmitting Neighbor
           Solicitation messages used by NUD.</t>
       </section>
 
@@ -205,7 +207,7 @@
           indicates the number of consecutive Neighbor Solicitation messages sent while performing
           Duplicate Address Detection (DAD) <xref target="RFC4862" />. The value of
           "dup-addr-detect-transmits" can be set to 0 to disable DAD.</t>
-        <t>The "ns-interval" leaf also indicates the interval for retransmitting Neighbor
+        <t>The "retrans-timer" leaf also indicates the interval for retransmitting Neighbor
           Solicitation messages during DAD.</t>
         <t>The "enhanced-dad" container augmenting "ietf-ip" <xref target="RFC8344" /> defines the
           configurations for enhanced DAD <xref target="RFC7527" />, which is used to automatically
@@ -228,23 +230,88 @@ module: ietf-ipv6-nd
   augment /if:interfaces/if:interface/ip:ipv6:
     +--rw nd
        +--rw reachable-time?   uint32
-       +--rw ns-interval?      uint32
+       +--rw retrans-timer?    uint32
        +--rw redirect?         boolean
        +--rw proxy-na?         boolean
        +--rw enhanced-dad
        |  +--rw enable?         boolean
        |  +--rw auto-resolve?   boolean
        +--ro statistics
-          +--ro in-ns-pkts?          yang:counter64
-          +--ro in-na-pkts?          yang:counter64
-          +--ro in-rs-pkts?          yang:counter64
-          +--ro in-ra-pkts?          yang:counter64
-          +--ro in-redirect-pkts?    yang:counter64
-          +--ro out-ns-pkts?         yang:counter64
-          +--ro out-na-pkts?         yang:counter64
-          +--ro out-rs-pkts?         yang:counter64
-          +--ro out-ra-pkts?         yang:counter64
-          +--ro out-redirect-pkts?   yang:counter64
+          +--ro ns-stats
+          |  +--ro in-pkts?                  yang:counter64
+          |  +--ro out-pkts?                 yang:counter64
+          |  +--ro drop-pkts?                yang:counter64
+          |  +--ro in-unicast-pkts?          yang:counter64
+          |  +--ro in-multicast-pkts?        yang:counter64
+          |  +--ro out-unicast-pkts?         yang:counter64
+          |  +--ro out-multicast-pkts?       yang:counter64
+          |  +--ro drop-bad-code-pkts?       yang:counter64
+          |  +--ro drop-bad-hoplimit-pkts?   yang:counter64
+          |  +--ro drop-bad-len-pkts?        yang:counter64
+          |  +--ro drop-bad-option-pkts?     yang:counter64
+          |  +--ro drop-checksum-err-pkts?   yang:counter64
+          |  +--ro drop-fragmented-pkts?     yang:counter64
+          |  +--ro out-nud-pkts?             yang:counter64
+          +--ro na-stats
+          |  +--ro in-pkts?                  yang:counter64
+          |  +--ro out-pkts?                 yang:counter64
+          |  +--ro drop-pkts?                yang:counter64
+          |  +--ro in-unicast-pkts?          yang:counter64
+          |  +--ro in-multicast-pkts?        yang:counter64
+          |  +--ro out-unicast-pkts?         yang:counter64
+          |  +--ro out-multicast-pkts?       yang:counter64
+          |  +--ro drop-bad-code-pkts?       yang:counter64
+          |  +--ro drop-bad-hoplimit-pkts?   yang:counter64
+          |  +--ro drop-bad-len-pkts?        yang:counter64
+          |  +--ro drop-bad-option-pkts?     yang:counter64
+          |  +--ro drop-checksum-err-pkts?   yang:counter64
+          |  +--ro drop-fragmented-pkts?     yang:counter64
+          |  +--ro in-solicited-pkts?        yang:counter64
+          |  +--ro in-unsolicited-pkts?      yang:counter64
+          |  +--ro in-override-pkts?         yang:counter64
+          |  +--ro in-nonoverride-pkts?      yang:counter64
+          |  +--ro out-solicited-pkts?       yang:counter64
+          |  +--ro out-unsolicited-pkts?     yang:counter64
+          |  +--ro out-override-pkts?        yang:counter64
+          |  +--ro out-nonoverride-pkts?     yang:counter64
+          +--ro rs-stats
+          |  +--ro in-pkts?                  yang:counter64
+          |  +--ro out-pkts?                 yang:counter64
+          |  +--ro drop-pkts?                yang:counter64
+          |  +--ro in-unicast-pkts?          yang:counter64
+          |  +--ro in-multicast-pkts?        yang:counter64
+          |  +--ro out-unicast-pkts?         yang:counter64
+          |  +--ro out-multicast-pkts?       yang:counter64
+          |  +--ro drop-bad-code-pkts?       yang:counter64
+          |  +--ro drop-bad-hoplimit-pkts?   yang:counter64
+          |  +--ro drop-bad-len-pkts?        yang:counter64
+          |  +--ro drop-bad-option-pkts?     yang:counter64
+          |  +--ro drop-checksum-err-pkts?   yang:counter64
+          |  +--ro drop-fragmented-pkts?     yang:counter64
+          +--ro ra-stats
+          |  +--ro in-pkts?                  yang:counter64
+          |  +--ro out-pkts?                 yang:counter64
+          |  +--ro drop-pkts?                yang:counter64
+          |  +--ro in-unicast-pkts?          yang:counter64
+          |  +--ro in-multicast-pkts?        yang:counter64
+          |  +--ro out-unicast-pkts?         yang:counter64
+          |  +--ro out-multicast-pkts?       yang:counter64
+          |  +--ro drop-bad-code-pkts?       yang:counter64
+          |  +--ro drop-bad-hoplimit-pkts?   yang:counter64
+          |  +--ro drop-bad-len-pkts?        yang:counter64
+          |  +--ro drop-bad-option-pkts?     yang:counter64
+          |  +--ro drop-checksum-err-pkts?   yang:counter64
+          |  +--ro drop-fragmented-pkts?     yang:counter64
+          +--ro redirect-stats
+             +--ro in-pkts?                  yang:counter64
+             +--ro out-pkts?                 yang:counter64
+             +--ro drop-pkts?                yang:counter64
+             +--ro drop-bad-code-pkts?       yang:counter64
+             +--ro drop-bad-hoplimit-pkts?   yang:counter64
+             +--ro drop-bad-len-pkts?        yang:counter64
+             +--ro drop-bad-option-pkts?     yang:counter64
+             +--ro drop-checksum-err-pkts?   yang:counter64
+             +--ro drop-fragmented-pkts?     yang:counter64
   augment /if:interfaces/if:interface/ip:ipv6/ip:neighbor:
     +--ro age?   uint32
       ]]>
@@ -256,7 +323,7 @@ module: ietf-ipv6-nd
       <t>This section presents the YANG module of IPv6 Neighbor Discovery defined in this
         document.</t>
 
-      <t>This module imports modules from Common YANG Data Types <xref target="RFC6991" />, A YANG
+      <t>This module imports modules from Common YANG Data Types <xref target="RFC9911" />, A YANG
         Data Model for Interface Management <xref target="RFC8343" />, and A YANG Data Model for IP
         Management <xref target="RFC8344" />.</t>
 
@@ -270,7 +337,7 @@ module ietf-ipv6-nd {
   import ietf-yang-types {
     prefix yang;
     reference
-      "RFC 6991: Common YANG Data Types";
+      "RFC 9911: Common YANG Data Types";
   }
   import ietf-interfaces {
     prefix if;
@@ -336,6 +403,96 @@ module ietf-ipv6-nd {
       "RFC XXXX: YANG Data Model for IPv6 Neighbor Discovery";
   }
 
+  
+  /* Groupings */
+  
+  grouping nd-basic-statistics {
+    description
+      "Grouping for basic statistics for IPv6 ND messages.";
+    leaf in-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets received.";
+    }
+    leaf out-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets transmitted.";
+    }
+    leaf drop-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded.";
+    }    
+  }
+
+  grouping nd-unicast-multicast-statistics {
+    description
+      "Grouping for statistics for IPv6 ND messages categorized by 
+       unicast and multicast.";
+    leaf in-unicast-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets received with the destination 
+         address as a unicast address.";
+    }
+    leaf in-multicast-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets received with the destination 
+         address as a multicast address.";
+    }
+    leaf out-unicast-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets transmitted with the destination 
+         address as a unicast address.";
+    }
+    leaf out-multicast-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets transmitted with the destination 
+         address as a multicast address.";
+    }
+  }
+
+  grouping nd-drop-statistics {
+    description
+      "Grouping for statistics for IPv6 ND messages discarded by 
+       reason.";
+    leaf drop-bad-code-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to invalid code.";
+    }
+    leaf drop-bad-hoplimit-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to invalid hop 
+         limits.";
+    }
+    leaf drop-bad-len-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to invalid length.";
+    }
+    leaf drop-bad-option-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to invalid option.";
+    }    
+    leaf drop-checksum-err-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to checksum errors.";
+    }    
+    leaf drop-fragmented-pkts {
+      type yang:counter64;
+      description
+        "The total number of packets discarded due to fragmentation.";
+    }
+  }  
+
   /* Data nodes */
 
   augment "/if:interfaces/if:interface/ip:ipv6" {
@@ -357,7 +514,7 @@ module ietf-ipv6-nd {
           "RFC4861: Neighbor Discovery for IP version 6 (IPv6)
                     Section 6.3.2 - BaseReachableTime";
       }
-      leaf ns-interval {
+      leaf retrans-timer {
         type uint32 {
           range "1..max";
         }
@@ -368,7 +525,7 @@ module ietf-ipv6-nd {
            neighbor for address resolution, NUD, or DAD.";
         reference
           "RFC4861: Neighbor Discovery for IP version 6 (IPv6)
-                    Section 6.3.2";
+                    Section 6.3.2 - RetransTimer";
       }
       leaf redirect {
         type boolean;
@@ -429,55 +586,85 @@ module ietf-ipv6-nd {
         description
           "A collection of interface-related statistics about IPv6
            ND messages.";
-        leaf in-ns-pkts {
-          type yang:counter64;
+        container ns-stats {
           description
-            "The number of received Neighbor Solicitation packets.";
+            "Statistics for Neighbor Solicitation packets.";
+          uses nd-basic-statistics;
+          uses nd-unicast-multicast-statistics;
+          uses nd-drop-statistics;
+          leaf out-nud-pkts {
+            type yang:counter64;
+            description
+              "The total number of NS packets transmitted for NUD.";
+          }          
         }
-        leaf in-na-pkts {
-          type yang:counter64;
+        container na-stats {
           description
-            "The number of received Neighbor Advertisement packets.";
+            "Statistics for Neighbor Advertisement packets.";
+          uses nd-basic-statistics;
+          uses nd-unicast-multicast-statistics;
+          uses nd-drop-statistics;
+          leaf in-solicited-pkts {
+            type yang:counter64;
+            description
+              "The total number of solicited NA packets received.";
+          }
+          leaf in-unsolicited-pkts {
+            type yang:counter64;
+            description
+              "The total number of unsolicited NA packets received.";
+          }
+          leaf in-override-pkts {
+            type yang:counter64;
+            description
+              "The total number of override NA packets received.";
+          }
+          leaf in-nonoverride-pkts {
+            type yang:counter64;
+            description
+              "The total number of non-override NA packets received.";
+          }
+          leaf out-solicited-pkts {
+            type yang:counter64;
+            description
+              "The total number of solicited NA packets transmitted.";
+          }
+          leaf out-unsolicited-pkts {
+            type yang:counter64;
+            description
+              "The total number of unsolicited NA packets transmitted.";
+          }
+          leaf out-override-pkts {
+            type yang:counter64;
+            description
+              "The total number of override NA packets transmitted.";
+          }
+          leaf out-nonoverride-pkts {
+            type yang:counter64;
+            description
+              "The total number of non-override NA packets 
+               transmitted.";
+          }       
         }
-        leaf in-rs-pkts {
-          type yang:counter64;
+        container rs-stats {
           description
-            "The number of received Router Solicitation packets.";
-        }
-        leaf in-ra-pkts {
-          type yang:counter64;
+            "Statistics for Router Solicitation packets.";
+          uses nd-basic-statistics;
+          uses nd-unicast-multicast-statistics;
+          uses nd-drop-statistics;
+        }  
+        container ra-stats {
           description
-            "The number of received Router Advertisement packets.";
-        }
-        leaf in-redirect-pkts {
-          type yang:counter64;
+            "Statistics for Router Advertisement packets.";
+          uses nd-basic-statistics;
+          uses nd-unicast-multicast-statistics;
+          uses nd-drop-statistics;
+        }  
+        container redirect-stats {
           description
-            "The number of received Redirect packets.";
-        }
-        leaf out-ns-pkts {
-          type yang:counter64;
-          description
-            "The number of sent Neighbor Solicitation packets.";
-        }
-        leaf out-na-pkts {
-          type yang:counter64;
-          description
-            "The number of sent Neighbor Advertisement packets.";
-        }
-        leaf out-rs-pkts {
-          type yang:counter64;
-          description
-            "The number of sent Router Solicitation packets.";
-        }
-        leaf out-ra-pkts {
-          type yang:counter64;
-          description
-            "The number of sent Router Advertisement packets.";
-        }
-        leaf out-redirect-pkts {
-          type yang:counter64;
-          description
-            "The number of sent Redirect packets.";
+            "Statistics for Redirect packets.";
+          uses nd-basic-statistics;
+          uses nd-drop-statistics;
         }
       }
     }
@@ -507,8 +694,8 @@ module ietf-ipv6-nd {
     </section>
 
     <section title="IANA Considerations">
-      <t>IANA is requested to register the following URI in the "ns" 
-        registry within the "IETF XML Registry" group <xref target="RFC3688" />: </t>
+      <t>IANA is requested to register the following URI in the "ns" registry within the "IETF XML
+        Registry" group <xref target="RFC3688" />: </t>
 
       <artwork><![CDATA[
    URI: urn:ietf:params:xml:ns:yang:ietf-ipv6-nd
@@ -516,9 +703,8 @@ module ietf-ipv6-nd {
    XML: N/A; the requested URI is an XML namespace.    
               ]]></artwork>
 
-      <t>IANA is requested to register the following YANG module in the "YANG
-        Module Names" registry <xref target="RFC6020" /> within the "YANG Parameters"
-        registry group. </t>
+      <t>IANA is requested to register the following YANG module in the "YANG Module Names" registry <xref
+          target="RFC6020" /> within the "YANG Parameters" registry group. </t>
 
       <artwork><![CDATA[
    Name: ietf-ipv6-nd
@@ -530,57 +716,56 @@ module ietf-ipv6-nd {
     </section>
 
     <section anchor="security" title="Security Considerations">
-      <t>This section is modeled after the template described in Section 3.7.1
-      of <xref target="RFC9907" />.</t>
+      <t>This section is modeled after the template described in Section 3.7.1 of <xref
+          target="RFC9907" />.</t>
 
-      <t>The "ietf-ipv6-nd" YANG module defines a data model that is
-      designed to be accessed via YANG-based management protocols,
-      such as the Network Configuration Protocol (NETCONF) <xref target="RFC6241" />
-      and RESTCONF <xref target="RFC8040" />. These YANG-based management protocols
-      (1) have to use a secure transport layer (e.g., Secure Shell (SSH)
-      <xref target="RFC4252" />, TLS <xref target="RFC8446" />, and QUIC <xref target="RFC9000" />) and (2) have to use
-      mutual authentication.</t>
+      <t>The "ietf-ipv6-nd" YANG module defines a data model that is designed to be accessed via
+        YANG-based management protocols, such as the Network Configuration Protocol (NETCONF) <xref
+          target="RFC6241" /> and RESTCONF <xref target="RFC8040" />. These YANG-based management
+        protocols (1) have to use a secure transport layer (e.g., Secure Shell (SSH) <xref
+          target="RFC4252" />, TLS <xref target="RFC9846" />, and QUIC <xref target="RFC9000" />)
+        and (2) have to use mutual authentication.</t>
 
-      <t>The Network Configuration Access Control Model (NACM) <xref target="RFC8341" />
-      provides the means to restrict access for particular NETCONF or
-      RESTCONF users to a preconfigured subset of all available NETCONF or
-      RESTCONF protocol operations and content.</t>
+      <t>The Network Configuration Access Control Model (NACM) <xref target="RFC8341" /> provides
+        the means to restrict access for particular NETCONF or RESTCONF users to a preconfigured
+        subset of all available NETCONF or RESTCONF protocol operations and content.</t>
 
       <!-- Writable nodes section -->
       <t>There are a number of data nodes defined in this YANG module that are
-      writable/creatable/deletable (i.e., "config true", which is the
-      default). All writable data nodes are likely to be sensitive or
-      vulnerable in some network environments. Write
-      operations (e.g., edit-config) and delete operations to these data
-      nodes without proper protection or authentication can have a negative
-      effect on network operations. The following subtrees and data nodes
-      have particular sensitivities/vulnerabilities:</t>   
+        writable/creatable/deletable (i.e., "config true", which is the
+        default). All writable data nodes are likely to be sensitive or
+        vulnerable in some network environments. Write
+        operations (e.g., edit-config) and delete operations to these data
+        nodes without proper protection or authentication can have a negative
+        effect on network operations. The following subtrees and data nodes
+        have particular sensitivities/vulnerabilities:</t>
 
       <t>* /if:interfaces/if:interface/ip:ipv6/v6nd:nd/v6nd:reachable-time</t>
-      <t>This leaf is used to consider a neighbor reachable since the last confirmation of reachability,
-          which could be set to big values to prolong the effect of spoofing Neighbor Cache entries
-          or small values to cause unnecessary frequent NUDs.</t>
+      <t>This leaf is used to consider a neighbor reachable since the last confirmation of
+        reachability,
+        which could be set to big values to prolong the effect of spoofing Neighbor Cache entries
+        or small values to cause unnecessary frequent NUDs.</t>
 
-      <t>* /if:interfaces/if:interface/ip:ipv6/v6nd:nd/v6nd:ns-interval</t>
+      <t>* /if:interfaces/if:interface/ip:ipv6/v6nd:nd/v6nd:retrans-timer</t>
       <t>This leaf is used to set the interval of retransmitting Neighbor Solicitations, which could
-          allow DoS attacks.</t>
+        allow DoS attacks.</t>
 
       <t>* /if:interfaces/if:interface/ip:ipv6/v6nd:nd/v6nd:redirect</t>
       <t>This leaf is used to enable the sending of Redirect messages on an interface, which could
-          allow traffic to be misdirected, potentially resulting in traffic hijacking,
-          man-in-the-middle attacks, or DoS attacks.</t>
+        allow traffic to be misdirected, potentially resulting in traffic hijacking,
+        man-in-the-middle attacks, or DoS attacks.</t>
 
       <t>* /if:interfaces/if:interface/ip:ipv6/v6nd:nd/v6nd:proxy-na</t>
       <t>This leaf is used to enable proxy Neighbor Advertisement on an interface, which could allow
-          spoofing traffic to be injected.</t>
-          
+        spoofing traffic to be injected.</t>
+
       <!-- Readable nodes section: -->
       <t>Some of the readable data nodes in this YANG module may be considered
-      sensitive or vulnerable in some network environments. It is thus
-      important to control read access (e.g., via get, get-config, or
-      notification) to these data nodes. Specifically, the following
-      subtrees and data nodes have particular sensitivities/
-      vulnerabilities:</t>
+        sensitive or vulnerable in some network environments. It is thus
+        important to control read access (e.g., via get, get-config, or
+        notification) to these data nodes. Specifically, the following
+        subtrees and data nodes have particular sensitivities/
+        vulnerabilities:</t>
 
       <t>* /if:interfaces/if:interface/ip:ipv6/ip:neighbor/v6nd:age</t>
       <t>Unauthorized access to this node may disclose information about
@@ -595,7 +780,8 @@ module ietf-ipv6-nd {
     </section>
 
     <section anchor="ack" title="Acknowledgments">
-      <t>The authors would like to thank Bin Han, Acee Lindem, Jen Linkova, Éric Vyncke, Changwang Lin, and many
+      <t>The authors would like to thank Bin Han, Acee Lindem, Jen Linkova, Éric Vyncke, Changwang
+        Lin, and many
         others for their helpful comments and suggestions.</t>
       <t>Thanks to Ebben Aries for the review and comments.</t>
     </section>
@@ -610,7 +796,6 @@ module ietf-ipv6-nd {
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.4861.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.4862.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6020.xml" />
-        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6991.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7527.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.7950.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8341.xml" />
@@ -618,17 +803,22 @@ module ietf-ipv6-nd {
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8343.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8344.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8349.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.9911.xml" />
 
       </references>
 
       <references title="Informative References">
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.4252.xml" />
-        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.4941.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6241.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.6775.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8040.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8340.xml" />
-        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8446.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8505.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8928.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.8981.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.9000.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.9010.xml" />
+        <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.9846.xml" />
         <xi:include href="http://xml.resource.org/public/rfc/bibxml/reference.RFC.9907.xml" />
         <xi:include
           href="https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-intarea-arp-yang-model.xml" />
@@ -637,72 +827,26 @@ module ietf-ipv6-nd {
     </references>
 
     <!-- appendix -->
-    <section anchor="datamodel" title="Data Model Examples">
-      <section anchor="configStatic" title="Configuration of Static IPv6 Neighbor Cache Entry">
-        <t>This example illustrates the manual configuration for a Neighbor Cache entry of interface
-          eth0 for peer 2001:db8::2 with link-layer address 00:00:5E:00:53:AB statically, using the
-          ietf-interfaces module <xref target="RFC8343" /> and the ietf-ip module <xref
-            target="RFC8344" />. </t>
-        <sourcecode type="xml" markers="false"><![CDATA[ 
-<?xml version='1.0' encoding='UTF-8'?>
+    <section anchor="example"
+      title="Example Proxy Neighbor Advertisement, Redirect, NUD, and DAD Configuration">
+
+      <t>This example illustrates the configuration of enabling proxy Neighbor Advertisement,
+        Redirect, NUD, DAD, and enhanced DAD on interface eth0 with setting the
+        "dup-addr-detect-transmits" leaf as 2, the "reachable-time" leaf as 40000 milliseconds, and
+        the "retrans-timer" leaf as 2000 milliseconds, using the ietf-interfaces module <xref
+          target="RFC8343" />, the ietf-ip module <xref
+          target="RFC8344" />, and the IPv6 ND module.</t>
+      <sourcecode type="xml" markers="false"><![CDATA[
 <interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces"
   xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">
   <interface>
     <name>eth0</name>
     <type>ianaift:ethernetCsmacd</type>
     <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-      <neighbor>
-        <ip>2001:db8::2</ip>
-        <link-layer-address>00:00:5E:00:53:AB</link-layer-address>
-      </neighbor>
-    </ipv6>
-  </interface>
-</interfaces>
-]]>
-          </sourcecode>
-
-        <t>The following is the same example using JSON format.</t>
-        <sourcecode type="xml" markers="false"><![CDATA[
-{
-  "ietf-interfaces:interfaces": {
-    "interface": [
-      {
-        "name": "eth0",
-        "type": "iana-if-type:ethernetCsmacd",
-        "ietf-ip:ipv6": {
-          "neighbor": [
-            {
-              "ip": "2001:db8::2",
-              "link-layer-address": "00:00:5E:00:53:AB"
-            }
-          ]
-        }
-      }
-    ]
-  }
-}
-]]>
-          </sourcecode>
-
-      </section>
-      <section anchor="configProxy"
-        title="Configuration of Proxy Neighbor Advertisement, Redirect, NUD, and DAD">
-        <t>This example illustrates the configuration of enabling proxy Neighbor Advertisement,
-          Redirect, NUD, DAD, and enhanced DAD with setting the "dup-addr-detect-transmits" leaf as
-          1, the "reachable-time" leaf as 30000 milliseconds, and the "ns-interval" leaf as 1000
-          milliseconds, using the ietf-interfaces module <xref target="RFC8343" />, the ietf-ip
-          module <xref target="RFC8344" />, and the IPv6 ND module.</t>
-        <sourcecode type="xml" markers="false"><![CDATA[
-<interfaces xmlns="urn:ietf:params:xml:ns:yang:ietf-interfaces"
-  xmlns:ianaift="urn:ietf:params:xml:ns:yang:iana-if-type">
-  <interface>
-    <name>eth0</name>
-    <type>ianaift:ethernetCsmacd</type>
-    <ipv6 xmlns="urn:ietf:params:xml:ns:yang:ietf-ip">
-      <dup-addr-detect-transmits>1</dup-addr-detect-transmits>
+      <dup-addr-detect-transmits>2</dup-addr-detect-transmits>
       <nd xmlns="urn:ietf:params:xml:ns:yang:ietf-ipv6-nd">
-        <reachable-time>30000</reachable-time>
-        <ns-interval>1000</ns-interval>
+        <reachable-time>40000</reachable-time>
+        <retrans-timer>2000</retrans-timer>
         <redirect>true</redirect>
         <proxy-na>true</proxy-na>
         <enhanced-dad>
@@ -716,8 +860,8 @@ module ietf-ipv6-nd {
         ]]>
           </sourcecode>
 
-        <t>The following is the same example using JSON format.</t>
-        <sourcecode type="xml" markers="false"><![CDATA[
+      <t>The following is the same example using JSON format.</t>
+      <sourcecode type="xml" markers="false"><![CDATA[
 {
   "ietf-interfaces:interfaces": {
     "interface": [
@@ -725,10 +869,10 @@ module ietf-ipv6-nd {
         "name": "eth0",
         "type": "iana-if-type:ethernetCsmacd",
         "ietf-ip:ipv6": {
-          "dup-addr-detect-transmits": 1,
+          "dup-addr-detect-transmits": 2,
           "ietf-ipv6-nd:nd": {
-            "reachable-time": 30000,
-            "ns-interval": 1000,
+            "reachable-time": 40000,
+            "retrans-timer": 2000,
             "redirect": true,
             "proxy-na": true,
             "enhanced-dad": {
@@ -743,8 +887,6 @@ module ietf-ipv6-nd {
 }
 ]]>
           </sourcecode>
-
-      </section>
     </section>
 
 
@@ -758,13 +900,13 @@ module ietf-ipv6-nd {
         Address Autoconfiguration), and <xref target="RFC7527" /> (Enhanced Duplicate Address
         Detection). The parameters are defined in Section 6.2.1 and 6.3.2 of <xref target="RFC4861" />,
         Section 5.1 of <xref
-          target="RFC4862" />, and Section 3.3 of <xref target="RFC4941" />.</t>
+          target="RFC4862" />, and Section 3.4 of <xref target="RFC8981" />.</t>
 
       <table>
         <name>Coverage of IPv6 ND Functions in YANG Modules</name>
         <thead>
           <tr>
-            <th align="left" colspan="1" rowspan="1">RFC<br/>(Section)</th>
+            <th align="left" colspan="1" rowspan="1">RFC<br />(Section)</th>
             <th align="left" colspan="1" rowspan="1">Function/Parameter</th>
             <th align="left" colspan="1" rowspan="1">Covered by</th>
             <th align="left" colspan="1" rowspan="1">Path</th>
@@ -772,205 +914,210 @@ module ietf-ipv6-nd {
         </thead>
         <tbody>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s5.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s5.1</td>
             <td align="left" colspan="1" rowspan="1">Neighbor Cache</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">/if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:neighbor</td>
+            <td align="left" colspan="1" rowspan="1">/if:interfaces<br />/if:interface<br />/ip:ipv6<br />
+              /ip:neighbor</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4862<br/>s5.1</td>
-            <td align="left" colspan="1" rowspan="1">Prefix List<br/>AdvPrefixList)</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:prefix-list</td>
+            <td align="left" colspan="1" rowspan="1">4862<br />s5.1</td>
+            <td align="left" colspan="1" rowspan="1">Prefix List<br />AdvPrefixList)</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:prefix-list</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">IsRouter</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:forwarding</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/ip:forwarding</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvSendAdvertisements</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:ipv6-router<br/>-advertisements</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:ipv6-router<br />-advertisements</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">MaxRtrAdvInterval</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:max-rtr<br/>-adv-interval</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:max-rtr<br />-adv-interval</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">MinRtrAdvInterval</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:min-rtr<br/>-adv-interval</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:min-rtr<br />-adv-interval</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvManagedFlag</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/<br/>v6ur:managed-flag</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/<br />v6ur:managed-flag</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvOtherConfigFlag</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:other-<br/>config-flag</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:other-<br />config-flag</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvLinkMTU</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:link-mtu</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:link-mtu</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
-            <td align="left" colspan="1" rowspan="1">AdvReachableTime<br/>(for RA)</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:reachable-time</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">AdvReachableTime</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:reachable-time</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvRetransTimer</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:retrans-timer</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:retrans-timer</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvCurHopLimit</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:cur-hop-limit</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:cur-hop-limit</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
             <td align="left" colspan="1" rowspan="1">AdvDefaultLifetime</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:default-lifetime</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:default-lifetime</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
-            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br/>AdvValidLifetime</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:prefix-list<br/>/v6ur:prefix<br/>/v6ur:control-adv<br/>-prefixes<br/>/v6ur:advertise<br/>/v6ur:valid<br/>-lifetime</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br />AdvValidLifetime</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:prefix-list<br />/v6ur:prefix<br />/v6ur:control-adv<br />
+              -prefixes<br />/v6ur:advertise<br />/v6ur:valid<br />-lifetime</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
-            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br/>AdvOnLinkFlag</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:prefix-list<br/>/v6ur:prefix<br/>/v6ur:control-adv<br/>-prefixes<br/>/v6ur:advertise/<br/>v6ur:on-link-flag</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br />AdvOnLinkFlag</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:prefix-list<br />/v6ur:prefix<br />/v6ur:control-adv<br />
+              -prefixes<br />/v6ur:advertise/<br />v6ur:on-link-flag</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
-            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br/>AdvPreferredLifetime</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:prefix-list<br/>/v6ur:prefix<br/>/v6ur:control-adv<br/>-prefixes<br/>/v6ur:advertise<br/>/v6ur:preferred<br/>-lifetime</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br />AdvPreferredLifetime</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:prefix-list<br />/v6ur:prefix<br />/v6ur:control-adv<br />
+              -prefixes<br />/v6ur:advertise<br />/v6ur:preferred<br />-lifetime</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.2.1</td>
-            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br/>AdvAutonomousFlag</td>
-            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br/>router-<br/>advertisements</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/v6ur:prefix-list<br/>/v6ur:prefix<br/>/v6ur:control-adv<br/>-prefixes<br/>/v6ur:advertise<br/>/v6ur:autonomous<br/>-flag</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.2.1</td>
+            <td align="left" colspan="1" rowspan="1">AdvPrefixList/<br />AdvAutonomousFlag</td>
+            <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/v6ur:prefix-list<br />/v6ur:prefix<br />/v6ur:control-adv<br />
+              -prefixes<br />/v6ur:advertise<br />/v6ur:autonomous<br />-flag</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.3.2</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
             <td align="left" colspan="1" rowspan="1">BaseReachableTime</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd<br/>/v6nd:reachable<br/>-time</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd<br />/v6nd:reachable<br />-time</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.3.2 /4862<br/>s5.1</td>
-            <td align="left" colspan="1" rowspan="1">RetransTimer(for NS)</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2 /4862<br />s5.1</td>
+            <td align="left" colspan="1" rowspan="1">RetransTimer</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd<br/>/v6nd:ns-interval</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd<br />/v6nd:retrans<br />-timer</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s6.3.2</td>
-            <td align="left" colspan="1" rowspan="1">CurHopLimit(for Node)</td>
-            <td align="left" colspan="1" rowspan="1">(reuse<br/>AdvCurHopLimit)</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
+            <td align="left" colspan="1" rowspan="1">CurHopLimit</td>
+            <td align="left" colspan="1" rowspan="1">(reuse<br />AdvCurHopLimit)</td>
             <td align="left" colspan="1" rowspan="1"> </td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s7.2.8</td>
-            <td align="left" colspan="1" rowspan="1">Proxy Neighbor<br/>Advertisements</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s7.2.8</td>
+            <td align="left" colspan="1" rowspan="1">Proxy Neighbor<br />Advertisements</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd<br/>/v6nd:proxy-na</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd<br />/v6nd:proxy-na</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br/>s8</td>
+            <td align="left" colspan="1" rowspan="1">4861<br />s8</td>
             <td align="left" colspan="1" rowspan="1">Redirect</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd<br/>/v6nd:redirect</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd<br />/v6nd:redirect</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4862<br/>s5.1</td>
+            <td align="left" colspan="1" rowspan="1">4862<br />s5.1</td>
             <td align="left" colspan="1" rowspan="1">DupAddrDetectTransmits</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/ip:dup<br/>-addr-detect<br/>-transmits</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/ip:dup<br />-addr-detect<br />-transmits</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4862<br/>s5.5</td>
-            <td align="left" colspan="1" rowspan="1">Creation of Global<br/>Addresses</td>
+            <td align="left" colspan="1" rowspan="1">4862<br />s5.5</td>
+            <td align="left" colspan="1" rowspan="1">Creation of Global<br />Addresses</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:autoconf<br/>/ip:create-<br/>global-<br/>addresses</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/ip:autoconf<br />/ip:create-<br />global-<br />addresses</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4941</td>
-            <td align="left" colspan="1" rowspan="1">Creation of Temporary<br/>Addresses</td>
+            <td align="left" colspan="1" rowspan="1">8981<br />s3.4</td>
+            <td align="left" colspan="1" rowspan="1">Creation of Temporary<br />Addresses</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:autoconf<br/>/ip:create-<br/>temporary-<br/>addresses</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/ip:autoconf<br />/ip:create-<br />temporary-<br />addresses</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4941</td>
+            <td align="left" colspan="1" rowspan="1">8981<br />s3.4</td>
             <td align="left" colspan="1" rowspan="1">TEMP_VALID_LIFETIME</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:autoconf<br/>/ip:temporary-<br/>valid-lifetime</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/ip:autoconf<br />/ip:temporary-<br />valid-lifetime</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">4941</td>
-            <td align="left" colspan="1" rowspan="1">TEMP_PREFERRED_<br/>LIFETIME</td>
+            <td align="left" colspan="1" rowspan="1">8981<br />s3.4</td>
+            <td align="left" colspan="1" rowspan="1">TEMP_PREFERRED_<br />LIFETIME</td>
             <td align="left" colspan="1" rowspan="1">ietf-ip</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6<br/>/ip:autoconf<br/>/ip:temporary-<br/>preferred-<br/>lifetime</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6<br />/ip:autoconf<br />/ip:temporary-<br />preferred-<br />lifetime</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">7527<br/>s4</td>
-            <td align="left" colspan="1" rowspan="1">Enhanced Duplicate<br/>Address Detection</td>
+            <td align="left" colspan="1" rowspan="1">7527<br />s4</td>
+            <td align="left" colspan="1" rowspan="1">Enhanced Duplicate<br />Address Detection</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd/<br/>v6nd:enhanced-dad</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd/<br />v6nd:enhanced-dad</td>
           </tr>
           <tr>
-            <td align="left" colspan="1" rowspan="1">7527<br/>s5</td>
-            <td align="left" colspan="1" rowspan="1">Automated Resolving<br/>of Duplicates</td>
+            <td align="left" colspan="1" rowspan="1">7527<br />s5</td>
+            <td align="left" colspan="1" rowspan="1">Automated Resolving<br />of Duplicates</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
-            <td align="left" colspan="1" rowspan="1">
-              /if:interfaces<br/>/if:interface<br/>/ip:ipv6/v6nd:nd/<br/>v6nd:auto-resolve</td>
+            <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
+              /ip:ipv6/v6nd:nd/<br />v6nd:auto-resolve</td>
           </tr>
         </tbody>
       </table>
