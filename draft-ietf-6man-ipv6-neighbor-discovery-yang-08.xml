@@ -112,7 +112,7 @@
 
       <t> Neighbor Discovery Optimization for 6LoWPANs <xref target="RFC6775" /> and other related
         extensions, such as those specified in <xref target="RFC8505" />, <xref target="RFC8928" />,
-        and <xref target="RFC9010" />, are out of the scope of this document. </t>
+        and <xref target="RFC9010" />, are out of scope of this document. </t>
 
       <section title="Terminology">
         <t>The following terms are defined in <xref target="RFC8342" />: </t>
@@ -172,7 +172,7 @@
       <t>Note that the features related to ICMP Router and Prefix Discovery are outside the scope of
         this module, since they have already been defined in the submodule
         "ietf-ipv6-router-advertisements" <xref target="RFC8349" />. Static neighbor cache entries
-        and stateless address autoconfiguration <xref target="RFC4862" /> are also out of the scope,
+        and stateless address autoconfiguration <xref target="RFC4862" /> are also out of scope,
         as they are covered by "ietf-ip"<xref target="RFC8344" />. </t>
 
       <section title="IPv6 Address Resolution and Redirect Function">
