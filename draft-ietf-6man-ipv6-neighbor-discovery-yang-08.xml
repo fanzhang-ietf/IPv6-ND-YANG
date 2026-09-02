@@ -891,7 +891,7 @@ module ietf-ipv6-nd {
 
 
     <section anchor="Coverage" title="Coverage of IPv6 ND Functions in YANG Modules">
-      <t>This appendix analyzes the functional elements related to the IPv6 ND protocol and
+      <t>This appendix summarizes the functional elements related to the IPv6 ND protocol and
         identifies whether they are covered by existing IETF YANG modules or defined in this
         document.</t>
       <t>The table below maps the relevant RFCs, functions or parameters, the corresponding YANG
@@ -922,7 +922,7 @@ module ietf-ipv6-nd {
           </tr>
           <tr>
             <td align="left" colspan="1" rowspan="1">4862<br />s5.1</td>
-            <td align="left" colspan="1" rowspan="1">Prefix List<br />AdvPrefixList)</td>
+            <td align="left" colspan="1" rowspan="1">Prefix List<br />(AdvPrefixList)</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-<br />router-<br />advertisements</td>
             <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
               /ip:ipv6<br />/v6ur:prefix-list</td>
@@ -1038,10 +1038,28 @@ module ietf-ipv6-nd {
           </tr>
           <tr>
             <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
+            <td align="left" colspan="1" rowspan="1">LinkMTU</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
+          </tr>
+          <tr>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
+            <td align="left" colspan="1" rowspan="1">CurHopLimit</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
+          </tr>
+          <tr>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
             <td align="left" colspan="1" rowspan="1">BaseReachableTime</td>
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
             <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
               /ip:ipv6/v6nd:nd<br />/v6nd:reachable<br />-time</td>
+          </tr>
+          <tr>
+            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
+            <td align="left" colspan="1" rowspan="1">ReachableTime</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
+            <td align="left" colspan="1" rowspan="1">-</td>
           </tr>
           <tr>
             <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2 /4862<br />s5.1</td>
@@ -1049,13 +1067,7 @@ module ietf-ipv6-nd {
             <td align="left" colspan="1" rowspan="1">ietf-ipv6-nd</td>
             <td align="left" colspan="1" rowspan="1"> /if:interfaces<br />/if:interface<br />
               /ip:ipv6/v6nd:nd<br />/v6nd:retrans<br />-timer</td>
-          </tr>
-          <tr>
-            <td align="left" colspan="1" rowspan="1">4861<br />s6.3.2</td>
-            <td align="left" colspan="1" rowspan="1">CurHopLimit</td>
-            <td align="left" colspan="1" rowspan="1">(reuse<br />AdvCurHopLimit)</td>
-            <td align="left" colspan="1" rowspan="1"> </td>
-          </tr>
+          </tr>          
           <tr>
             <td align="left" colspan="1" rowspan="1">4861<br />s7.2.8</td>
             <td align="left" colspan="1" rowspan="1">Proxy Neighbor<br />Advertisements</td>
